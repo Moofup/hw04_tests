@@ -21,7 +21,6 @@ class PostModelTest(TestCase):
             text='Тестовая группа',
         )
 
-
     def test_models_have_correct_object_names(self):
         group = PostModelTest.group
         str_group_name = group.__str__()

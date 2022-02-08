@@ -30,7 +30,11 @@ class PostURLTests(TestCase):
     def setUpClass(cls):
         super().setUpClass()
         cls.author = User.objects.create_user(username='Nameless')
-        cls.group = Group.objects.create(title='Test-group', slug='t-group', description='test-description')
+        cls.group = Group.objects.create(
+            title='Test-group',
+            slug='t-group',
+            description='test-description'
+        )
         cls.post = Post.objects.create(
             text='Тестовый заголовок',
             author=cls.author,
@@ -52,9 +56,15 @@ class PostURLTests(TestCase):
             with self.subTest(address=address):
                 response = self.guest_client.get(address)
                 if address == '/unexisting_page/':
-                    self.assertEqual(response.status_code, HTTPStatus.NOT_FOUND)
+                    self.assertEqual(
+                        response.status_code,
+                        HTTPStatus.NOT_FOUND
+                    )
                 else:
-                    self.assertEqual(response.status_code, HTTPStatus.OK)
+                    self.assertEqual(
+                        response.status_code,
+                        HTTPStatus.OK
+                    )
 
         templates_url_names_authorized = {
             '/': 'posts/index.html',
@@ -68,6 +78,12 @@ class PostURLTests(TestCase):
             with self.subTest(address=address):
                 response = self.authorized_client.get(address)
                 if address == '/unexisting_page/':
-                    self.assertEqual(response.status_code, HTTPStatus.NOT_FOUND)
+                    self.assertEqual(
+                        response.status_code,
+                        HTTPStatus.NOT_FOUND
+                    )
                 else:
-                    self.assertEqual(response.status_code, HTTPStatus.OK)
+                    self.assertEqual(
+                        response.status_code,
+                        HTTPStatus.OK
+                    )

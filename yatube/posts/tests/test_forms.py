@@ -1,10 +1,9 @@
 from django.contrib.auth import get_user_model
 from django.test import TestCase, Client
 from django.urls import reverse
-from django import forms
 
-from ..models import Group, Post
 from ..forms import PostForm
+from ..models import Group, Post
 
 User = get_user_model()
 
@@ -14,7 +13,11 @@ class PostFormTests(TestCase):
     def setUpClass(cls):
         super().setUpClass()
         cls.author = User.objects.create_user(username='Nameless')
-        cls.group = Group.objects.create(title='Test-group', slug='t-group', description='test-description')
+        cls.group = Group.objects.create(
+            title='Test-group',
+            slug='t-group',
+            description='test-description'
+        )
         cls.post = Post.objects.create(
             text='Тестовый заголовок',
             author=cls.author,
