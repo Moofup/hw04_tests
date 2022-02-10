@@ -9,20 +9,19 @@ User = get_user_model()
 
 
 class StaticURLTests(TestCase):
-    def setUp(self):
-        self.guest_client = Client()
-
-    def test_homepage(self):
-        response = self.guest_client.get('/')
-        self.assertEqual(response.status_code, HTTPStatus.OK)
-
-    def test_author(self):
-        response = self.guest_client.get('/about/author/')
-        self.assertEqual(response.status_code, HTTPStatus.OK)
-
-    def test_tech(self):
-        response = self.guest_client.get('/about/tech/')
-        self.assertEqual(response.status_code, HTTPStatus.OK)
+    def test_about_urls_uses_correct_templates(self):
+        templates_url_names_quest = (
+            '/',
+            '/about/author/',
+            '/about/tech/'
+        )
+        for address in templates_url_names_quest:
+            with self.subTest(address=address):
+                response = self.client.get(address)
+                self.assertEqual(
+                    response.status_code,
+                    HTTPStatus.OK
+                )
 
 
 class PostURLTests(TestCase):
@@ -39,7 +38,6 @@ class PostURLTests(TestCase):
             text='Тестовый заголовок',
             author=cls.author,
         )
-        cls.guest_client = Client()
         cls.authorized_client = Client()
         cls.authorized_client.force_login(cls.author)
 
@@ -47,14 +45,14 @@ class PostURLTests(TestCase):
         """URL-адрес использует соответствующий шаблон."""
         templates_url_names_guest = {
             '/': 'posts/index.html',
-            '/group/t-group/': 'posts/group_list.html',
-            '/profile/Nameless/': 'posts/profile.html',
-            '/posts/1/': 'posts/post_detail.html',
+            f'/group/{self.group.slug}/': 'posts/group_list.html',
+            f'/profile/{self.post.author.username}/': 'posts/profile.html',
+            f'/posts/{self.post.id}/': 'posts/post_detail.html',
             '/unexisting_page/': 'lol.html',
         }
         for address, template in templates_url_names_guest.items():
             with self.subTest(address=address):
-                response = self.guest_client.get(address)
+                response = self.client.get(address)
                 if address == '/unexisting_page/':
                     self.assertEqual(
                         response.status_code,
@@ -68,11 +66,11 @@ class PostURLTests(TestCase):
 
         templates_url_names_authorized = {
             '/': 'posts/index.html',
-            '/group/t-group/': 'posts/group_list.html',
-            '/profile/Nameless/': 'posts/profile.html',
-            '/posts/1/': 'posts/post_detail.html',
+            f'/group/{self.group.slug}/': 'posts/group_list.html',
+            f'/profile/{self.author.username}/': 'posts/profile.html',
+            f'/posts/{self.post.id}/': 'posts/post_detail.html',
             '/create/': 'posts/create_post.html',
-            '/posts/1/edit/': 'posts/create_post.html',
+            f'/posts/{self.post.id}/edit/': 'posts/create_post.html',
         }
         for address, template in templates_url_names_authorized.items():
             with self.subTest(address=address):

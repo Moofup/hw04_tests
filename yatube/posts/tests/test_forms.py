@@ -2,7 +2,6 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase, Client
 from django.urls import reverse
 
-from ..forms import PostForm
 from ..models import Group, Post
 
 User = get_user_model()
@@ -22,10 +21,8 @@ class PostFormTests(TestCase):
             text='Тестовый заголовок',
             author=cls.author,
         )
-        cls.guest_client = Client()
         cls.authorized_client = Client()
         cls.authorized_client.force_login(cls.author)
-        cls.form = PostForm()
 
     def test_create_post(self):
         posts_count = Post.objects.count()
@@ -38,8 +35,10 @@ class PostFormTests(TestCase):
             data=form_data,
             follow=True
         )
+        tested_post = Post.objects.order_by('id').last()
+
         self.assertEqual(Post.objects.count(), posts_count + 1)
-        self.assertTrue(Post.objects.filter(text='Тестовый текст').exists())
+        self.assertIn(tested_post, Post.objects.all())
 
     def test_edit_post(self):
         old_post = self.post
@@ -47,9 +46,9 @@ class PostFormTests(TestCase):
             'text': 'Новый тестовый текст',
         }
         self.authorized_client.post(
-            reverse('posts:post_edit', kwargs={'post_id': '1'}),
+            reverse('posts:post_edit', kwargs={'post_id': self.post.id}),
             data=form_data,
             follow=True
         )
-        new_post = Post.objects.get(id=1)
+        new_post = Post.objects.get(id=self.post.id)
         self.assertNotEqual(old_post.text, new_post.text)
