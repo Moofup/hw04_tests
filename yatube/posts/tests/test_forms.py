@@ -35,10 +35,13 @@ class PostFormTests(TestCase):
             data=form_data,
             follow=True
         )
-        tested_post = Post.objects.order_by('id').last()
+        tested_post = Post.objects.filter(
+            text='Тестовый текст',
+            group=self.group.pk
+        )
 
         self.assertEqual(Post.objects.count(), posts_count + 1)
-        self.assertIn(tested_post, Post.objects.all())
+        self.assertTrue(tested_post.exists())
 
     def test_edit_post(self):
         old_post = self.post

@@ -56,8 +56,10 @@ class PostPagesTests(TestCase):
                 response = self.authorized_client.get(reverse_name)
                 self.assertTemplateUsed(response, template)
 
-    def objects_test(self, tested_object):
+    def compare_objects(self, tested_object):
         self.assertEqual(tested_object, self.post)
+        self.assertEqual(tested_object.group, self.post.group)
+        self.assertEqual(tested_object.author, self.post.author)
 
     def test_index_shows_correct_context(self):
         group3 = Group.objects.create(
@@ -74,9 +76,9 @@ class PostPagesTests(TestCase):
         test_object = response.context.get('page_obj')[1]
         test_title = response.context['title']
         test_second_page_count = (
-            self.author.posts.count() - views.MAX_POST_DISPLAYED
+            self.author.posts.count() % views.MAX_POST_DISPLAYED
         )
-        self.objects_test(test_object)
+        self.compare_objects(test_object)
         self.assertEqual(test_title, 'Последние обновления на сайте')
         self.assertIn(post, response.context.get('page_obj'))
         self.assertEqual(
@@ -107,9 +109,9 @@ class PostPagesTests(TestCase):
         test_title = response.context['title']
         test_group = response.context['group']
         test_second_page_count = (
-            self.author.posts.count() - views.MAX_POST_DISPLAYED - 1
+            self.author.posts.count() % views.MAX_POST_DISPLAYED - 1
         )
-        self.objects_test(test_object)
+        self.compare_objects(test_object)
         self.assertEqual(test_title, 'Записи сообщества Test-group')
         self.assertEqual(test_group, self.group)
         self.assertNotIn(post, response.context.get('page_obj'))
@@ -154,9 +156,9 @@ class PostPagesTests(TestCase):
         test_author = response.context['author']
         test_post_count = response.context['author_posts_count']
         test_second_page_count = (
-            self.author.posts.count() - views.MAX_POST_DISPLAYED
+            self.author.posts.count() % views.MAX_POST_DISPLAYED
         )
-        self.objects_test(test_object)
+        self.compare_objects(test_object)
         self.assertEqual(test_title, 'Все посты пользователя Nameless')
         self.assertEqual(test_author, self.author)
         self.assertEqual(test_post_count, self.author.posts.count())
