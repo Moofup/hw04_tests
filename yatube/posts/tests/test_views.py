@@ -1,6 +1,11 @@
+import shutil
+import tempfile
+
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django import forms
 from django.contrib.auth import get_user_model
-from django.test import TestCase, Client
+from django.conf import settings
+from django.test import TestCase, Client,override_settings
 from django.urls import reverse
 
 from .. import views
@@ -9,7 +14,10 @@ from ..models import Group, Post
 
 User = get_user_model()
 
+TEMP_MEDIA_ROOT = tempfile.mkdtemp(dir=settings.BASE_DIR)
 
+
+@override_settings(MEDIA_ROOT=TEMP_MEDIA_ROOT)
 class PostPagesTests(TestCase):
     @classmethod
     def setUpClass(cls):
@@ -20,12 +28,34 @@ class PostPagesTests(TestCase):
             slug='t-group',
             description='test-description'
         )
+        small_gif = (
+             b'\x47\x49\x46\x38\x39\x61\x02\x00'
+             b'\x01\x00\x80\x00\x00\x00\x00\x00'
+             b'\xFF\xFF\xFF\x21\xF9\x04\x00\x00'
+             b'\x00\x00\x00\x2C\x00\x00\x00\x00'
+             b'\x02\x00\x01\x00\x00\x02\x02\x0C'
+             b'\x0A\x00\x3B'
+        )
+        uploaded = SimpleUploadedFile(
+            name='small.gif',
+            content=small_gif,
+            content_type='image/gif'
+        )
+
         for i in range(1, 14):
             cls.post = Post.objects.create(
                 text='Тестовый текст ' + str(i),
                 author=cls.author,
-                group=cls.group
+                group=cls.group,
+                image=uploaded
             )
+
+
+        @classmethod
+        def tearDownClass(cls):
+            super().tearDownClass()
+            shutil.rmtree(TEMP_MEDIA_ROOT, ignore_errors=True)
+
         cls.authorized_client = Client()
         cls.authorized_client.force_login(cls.author)
 
@@ -60,6 +90,7 @@ class PostPagesTests(TestCase):
         self.assertEqual(tested_object, self.post)
         self.assertEqual(tested_object.group, self.post.group)
         self.assertEqual(tested_object.author, self.post.author)
+        self.assertEqual(tested_object.image, self.post.image)
 
     def test_index_shows_correct_context(self):
         group3 = Group.objects.create(
@@ -186,6 +217,7 @@ class PostPagesTests(TestCase):
         test_title = response.context['title']
         test_post = response.context['post']
         test_post_count = response.context['author_posts_count']
+        self.compare_objects(test_post)
         self.assertEqual(test_title, self.post.text)
         self.assertEqual(test_post, self.post)
         self.assertEqual(test_post_count, self.post.author.posts.count())
