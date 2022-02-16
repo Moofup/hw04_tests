@@ -3,7 +3,7 @@ from http import HTTPStatus
 from django.contrib.auth import get_user_model
 from django.test import TestCase, Client
 
-from ..models import Group, Post
+from ..models import Group, Post, Comment
 
 User = get_user_model()
 
@@ -38,6 +38,7 @@ class PostURLTests(TestCase):
             text='Тестовый заголовок',
             author=cls.author,
         )
+
         cls.authorized_client = Client()
         cls.authorized_client.force_login(cls.author)
 
@@ -85,3 +86,7 @@ class PostURLTests(TestCase):
                         response.status_code,
                         HTTPStatus.OK
                     )
+
+    def test_comment_field_exists_at_desired_location_anonymous(self):
+        response = self.client.get('/posts/1/comment/')
+        self.assertEqual(response.status_code, 302)

@@ -3,8 +3,8 @@ from django.core.paginator import Paginator, Page
 from django.db.models import QuerySet
 from django.shortcuts import render, get_object_or_404, redirect
 
-from .forms import PostForm
-from .models import Group, Post, User
+from .forms import PostForm, CommentForm
+from .models import Group, Post, User, Comment
 
 MAX_POST_DISPLAYED: int = 10
 
@@ -76,13 +76,16 @@ def profile(request, username):
 def post_detail(request, post_id):
     full_post = get_object_or_404(Post, pk=post_id)
     author_posts_count = full_post.author.posts.count()
-
+    form = CommentForm(request.POST or None)
+    comments = full_post.comments.all()
     title = full_post.text
     template = 'posts/post_detail.html'
     context = {
         'title': title,
         'post': full_post,
         'author_posts_count': author_posts_count,
+        'form': form,
+        'comments': comments,
     }
     return render(request, template, context)
 
@@ -92,7 +95,7 @@ def post_create(request):
     if request.method == 'POST':
         form = PostForm(
             request.POST or None,
-            files=request.FILES or None,)
+            files=request.FILES or None, )
         if form.is_valid():
             form = form.save(commit=False)
             form.author = request.user
@@ -130,3 +133,15 @@ def post_edit(request, post_id):
     is_edit = True
     context = {'form': form, 'is_edit': is_edit}
     return render(request, template, context)
+
+
+@login_required
+def add_comment(request, post_id):
+    post = Post.objects.get(pk=post_id)
+    form = CommentForm(request.POST or None)
+    if form.is_valid():
+        comment = form.save(commit=False)
+        comment.author = request.user
+        comment.post = post
+        comment.save()
+    return redirect('posts:post_detail', post_id=post_id)

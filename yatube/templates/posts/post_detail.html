@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load thumbnail %}
+{% load user_filters %}
 
 {% block title %}
   {{ title|truncatechars:30 }}
@@ -38,6 +39,7 @@
             <a href="{% url 'posts:post_edit' post.id %}"
             >Редактировать пост</a>
         {% endif %}
+      {% include 'posts/add_comment.html' %}
       </article>
   </div>
 {% endblock content %}
