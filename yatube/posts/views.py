@@ -4,7 +4,7 @@ from django.db.models import QuerySet
 from django.shortcuts import render, get_object_or_404, redirect
 
 from .forms import PostForm, CommentForm
-from .models import Group, Post, User, Comment
+from .models import Group, Post, User
 
 MAX_POST_DISPLAYED: int = 10
 
